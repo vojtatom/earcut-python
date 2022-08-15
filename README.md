@@ -3,7 +3,7 @@
 A pure Python port of the earcut JavaScript triangulation library. 
 
 The latest version is based off of the earcut 2.1.1 release, and there have been following enhancements:
-- if `dimensions == 2`, project data into 2D instead of triangulating only first two coordinates
+- if `dimensions == 3`, project data into 2D instead of triangulating only first two coordinates
 
 The original project can be found here:
 https://github.com/mapbox/earcut
