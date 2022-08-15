@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="earcut",
-    version="1.1.4",
+    version="1.1.5",
     description="A pure Python port of the earcut JS triangulation library",
     long_description=README,
     long_description_content_type="text/markdown",
