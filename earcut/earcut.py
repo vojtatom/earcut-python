@@ -1,11 +1,60 @@
 import math
+import numpy as np
+__all__ = ['earcut', 'deviation', 'flatten', 'normal']
 
-__all__ = ['earcut', 'deviation', 'flatten']
+
+def normal(poly):
+    # find normal with Newell's method
+    # poly is a polygon with vertices as elements [x1, y1, z1, x2, y2, z2]
+
+    n = [0.0, 0.0, 0.0]
+    for i in range(len(poly) // 3):
+        ne = i + 1
+        if (ne == len(poly) // 3):
+            ne = 0
+        i3, ne3 = i * 3, ne * 3
+        n[0] += ((poly[i3 + 1] - poly[ne3 + 1]) * (poly[i3 + 2] + poly[ne3 + 2]))
+        n[1] += ((poly[i3 + 2] - poly[ne3 + 2]) * (poly[i3 + 0] + poly[ne3 + 0]))
+        n[2] += ((poly[i3 + 0] - poly[ne3 + 0]) * (poly[i3 + 1] + poly[ne3 + 1]))
+    
+    nlength = np.linalg.norm(n)
+    if (nlength == 0):
+        return n, False
+
+    n = n / nlength    
+    return n, True
+
+
+def to_2d(points, n):
+    x3 = np.array([1.1, 1.1, 1.1])    #-- is this always a good value??
+    n = np.array(n)
+    if(np.all(n == x3)):
+        x3 = np.array([2.1, 2.1, 4.1])
+
+    x3 = x3 - np.dot(x3, n) * n
+    x3 /= np.linalg.norm(x3)   # make x a unit vector    
+    y3 = np.cross(n, x3)
+    
+    points = np.array(points)
+    points = points.reshape(points.size // 3, 3)
+    return np.array([[ np.dot(p, x3), np.dot(p, y3) ] for p in points ]).flatten()
 
 
 def earcut(data, holeIndices=None, dim=None):
     dim = dim or 2
 
+    ###local fix to transfer to 2D
+    if dim == 3:
+        if len(data) == 3:
+            return [0, 1, 2]
+        n, normal_exists = normal(data)
+        if normal_exists == False:
+            return []
+
+        data = to_2d(data, n)
+        dim = 2
+
+    ###back to the original code
     hasHoles = holeIndices and len(holeIndices)
     outerLen =  holeIndices[0] * dim if hasHoles else len(data)
     outerNode = linkedList(data, 0, outerLen, dim, True)
@@ -452,8 +501,8 @@ def sortLinked(_list):
 # z-order of a point given coords and size of the data bounding box
 def zOrder(x, y, minX, minY, size):
     # coords are transformed into non-negative 15-bit integer range
-    x = 32767 * (x - minX) // size
-    y = 32767 * (y - minY) // size
+    x = 32767 * int((x - minX) // size)
+    y = 32767 * int((y - minY) // size)
 
     x = (x | (x << 8)) & 0x00FF00FF
     x = (x | (x << 4)) & 0x0F0F0F0F
